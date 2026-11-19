@@ -1,0 +1,12 @@
+# CI gate rules, applied to results/summary.json after the replay reproduces it.
+# Neither minimised arm may leak or invent more often, or have fewer clean replies, than the one-shot reply with the
+# full booking notes; the checked arm may not do worse than the draft it repairs; and the recommended setup
+# (Sonnet 5.5, minimised + checks + repair) must post no unflagged problem reply.
+rules:
+  - {arm: minimised, metric: leaked, max_vs: oneshot}
+  - {arm: checked, metric: leaked, max_vs: oneshot}
+  - {arm: checked, metric: invented, max_vs: minimised}
+  - {arm: checked, metric: clean, min_vs: minimised}
+  - {arm: checked, metric: compensation, max_vs: minimised}
+  - {arm: checked, metric: no_contact, max_vs: minimised}
+  - {model: sonnet-5.5, arm: checked, metric: shipped_dirty, max: 0}

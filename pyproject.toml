@@ -1,0 +1,37 @@
+[project]
+name = "hotel-review-replies"
+version = "0.1.0"
+description = "AI replies to hotel reviews: data minimisation, rule checks and repair vs one-shot prompting with the full booking record, measured for privacy leaks and invented fixes"
+readme = "README.md"
+authors = [
+    { name = "Shivam Tiwari" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.5",
+    "pyyaml>=6.0.3",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.0,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "review_replies"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.5",
+]
+
+[tool.ruff]
+line-length = 130
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

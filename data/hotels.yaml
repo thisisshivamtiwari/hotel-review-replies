@@ -1,0 +1,94 @@
+# Four MADE-UP hotels in made-up towns (the same ones as github.com/thisisshivamtiwari/hotel-content-pipeline).
+# Not real hotels, staff, guests or prices.
+#
+# This is the public fact sheet a reply may draw on:
+# - `facts`: what is true about the hotel;
+# - `changes`: what has actually changed, with the month. A reply may only say something "has been fixed / replaced /
+#   added" if it is here. `keywords` are the words a rule check uses to tie a reply's sentence to the change;
+# - `open_issues`: known problems that are NOT fixed. A reply must not say or imply they are. A booked visit with a date
+#   may be mentioned, nothing more;
+# - `contact`: the only route a reply may give for taking a complaint offline.
+hotels:
+  - id: lantern
+    name: The Lantern Rooms
+    town: Pellingford
+    kind: 24-room city-centre budget hotel
+    signoff: Tom Hale, General Manager
+    contact: stay@lanternrooms.example
+    facts:
+      - 24 rooms, all with blackout blinds and a rainfall shower
+      - 4 minutes' walk from Pellingford Central station
+      - self check-in kiosk, staffed reception 7am to 11pm
+      - rooftop terrace open April to September
+      - free Wi-Fi in every room
+      - no parking, no restaurant, no room service
+      - breakfast is £11 per person, served in the café next door
+    changes:
+      - {what: "the check-in kiosk software was updated to stop card payments failing", when: "November 2026", keywords: [kiosk, card, payment, software]}
+      - {what: "new pillows in every room", when: "September 2026", keywords: [pillow]}
+    open_issues:
+      - {what: "hot water is slow to run hot in the third-floor rooms; the cause is not yet known; a plumber visit is booked for 2 December 2026", keywords: [hot water, shower, plumber, water]}
+      - {what: "street noise from the bars on Friday and Saturday nights in the front rooms; no fix is planned", keywords: [noise, noisy, street, window]}
+
+  - id: saltmarsh
+    name: Saltmarsh Quay Guesthouse
+    town: Wrenmouth
+    kind: 9-room seaside guesthouse
+    signoff: Ellen Marr, owner
+    contact: hello@saltmarshquay.example
+    facts:
+      - 9 rooms, 6 with a sea view
+      - cooked breakfast included in every rate
+      - the coast path starts 200 metres from the door
+      - drying room for boots and coats
+      - owners live on site
+      - listed building with steep stairs and no lift
+      - no on-site parking; the public car park on Quay Lane is 400 metres away
+    changes:
+      - {what: "new mattresses in all six sea-view rooms", when: "October 2026", keywords: [mattress, bed]}
+      - {what: "vegan and gluten-free breakfast options added to the menu", when: "September 2026", keywords: [vegan, gluten, menu, option]}
+    open_issues:
+      - {what: "Wi-Fi is weak in the top-floor rooms; no fix yet", keywords: [wi-fi, wifi, internet, signal]}
+      - {what: "no lift and steep stairs; it is a listed building, so this cannot change", keywords: [lift, stairs, steps]}
+
+  - id: runway
+    name: Northgate Runway Hotel
+    town: Stellbridge Airport
+    kind: 180-room airport business hotel
+    signoff: Dana Okafor, Hotel Manager
+    contact: guestcare@northgaterunway.example
+    facts:
+      - 180 rooms with soundproofed windows
+      - 24-hour shuttle to the terminal every 15 minutes
+      - 24-hour gym
+      - restaurant open 5am to 11pm
+      - 8 meeting rooms for up to 40 people
+      - park-and-fly rates are non-refundable
+    changes:
+      - {what: "the shuttle now runs every 15 minutes instead of every 30", when: "August 2026", keywords: [shuttle, bus]}
+      - {what: "grab-and-go breakfast now starts at 4am instead of 5am", when: "November 2026", keywords: [grab-and-go, breakfast, 4am]}
+    open_issues:
+      - {what: "long check-in queues between 6pm and 8pm at busy times; extra evening staff have not been agreed", keywords: [queue, check-in, wait, reception, staff]}
+      - {what: "air-conditioning units are noisy in some rooms; an engineer is assessing them, no date for a fix", keywords: [air-con, air conditioning, aircon, noise, rattle, engineer]}
+
+  - id: hollowmere
+    name: Hollowmere House
+    town: Marrowdale
+    kind: 32-room country-house hotel
+    signoff: James Whitlow, General Manager
+    contact: reservations@hollowmerehouse.example
+    facts:
+      - Georgian house on 40 acres of parkland
+      - restaurant with a 6-course tasting menu, Wednesday to Sunday
+      - 32 rooms, 12 with a four-poster bed
+      - log fires in the drawing room and library
+      - dogs welcome in 4 garden rooms
+      - free parking and 2 EV chargers
+      - no pool, spa or gym
+      - flexible rates can be cancelled free up to 48 hours before arrival; non-refundable rates cannot be refunded
+    changes:
+      - {what: "the restaurant added a vegetarian tasting menu", when: "October 2026", keywords: [vegetarian, menu]}
+      - {what: "a second EV charger was installed", when: "September 2026", keywords: [ev, charger, charging]}
+    open_issues:
+      - {what: "the dining room is cold on winter evenings; heating options are being looked at, nothing is decided", keywords: [cold, heating, chilly, warm, radiator]}
+      - {what: "dinner service is slow on Saturdays (2 hours 45 minutes for 6 courses); no change yet", keywords: [slow, service, wait, dinner]}

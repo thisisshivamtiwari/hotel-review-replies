@@ -1,0 +1,27 @@
+# Lint, tests and the eval gate. The gate replays recorded model calls (cassettes/), so it needs no API key; it fails
+# if the replay no longer reproduces results/summary.json or a pipeline arm breaks a rule in evals/gate.yaml.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install
+        run: uv sync --locked
+      - name: Lint
+        run: uv run ruff check . && uv run ruff format --check .
+      - name: Tests
+        run: uv run pytest -q
+      - name: Eval gate (replay)
+        run: uv run python -m review_replies ci
