@@ -1,0 +1,318 @@
+{
+ "table": [
+  {
+   "model": "haiku-4.5",
+   "arm": "plain",
+   "replies": 32,
+   "leaked": 4,
+   "invented": 7,
+   "compensation": 5,
+   "accusation": 0,
+   "generic_action": 4,
+   "safe": 20,
+   "not_paste_ready": 0,
+   "clean": 20,
+   "clean_ci95": [
+    0.453,
+    0.771
+   ],
+   "flagged_for_review": 0,
+   "shipped_dirty": 12,
+   "no_contact": 13,
+   "needs_contact": 24,
+   "same_opening": 22,
+   "median_words": 60,
+   "cost_per_reply_usd": 0.0161,
+   "seconds_per_reply": 25.4,
+   "repairs": 0
+  },
+  {
+   "model": "haiku-4.5",
+   "arm": "oneshot",
+   "replies": 32,
+   "leaked": 0,
+   "invented": 1,
+   "compensation": 0,
+   "accusation": 0,
+   "generic_action": 1,
+   "safe": 31,
+   "not_paste_ready": 0,
+   "clean": 31,
+   "clean_ci95": [
+    0.843,
+    0.994
+   ],
+   "flagged_for_review": 0,
+   "shipped_dirty": 1,
+   "no_contact": 1,
+   "needs_contact": 24,
+   "same_opening": 26,
+   "median_words": 54,
+   "cost_per_reply_usd": 0.0136,
+   "seconds_per_reply": 21.6,
+   "repairs": 0
+  },
+  {
+   "model": "haiku-4.5",
+   "arm": "minimised",
+   "replies": 32,
+   "leaked": 0,
+   "invented": 1,
+   "compensation": 0,
+   "accusation": 0,
+   "generic_action": 0,
+   "safe": 31,
+   "not_paste_ready": 0,
+   "clean": 31,
+   "clean_ci95": [
+    0.843,
+    0.994
+   ],
+   "flagged_for_review": 0,
+   "shipped_dirty": 1,
+   "no_contact": 1,
+   "needs_contact": 24,
+   "same_opening": 29,
+   "median_words": 56,
+   "cost_per_reply_usd": 0.0128,
+   "seconds_per_reply": 19.7,
+   "repairs": 0
+  },
+  {
+   "model": "haiku-4.5",
+   "arm": "checked",
+   "replies": 32,
+   "leaked": 0,
+   "invented": 1,
+   "compensation": 0,
+   "accusation": 0,
+   "generic_action": 0,
+   "safe": 31,
+   "not_paste_ready": 0,
+   "clean": 31,
+   "clean_ci95": [
+    0.843,
+    0.994
+   ],
+   "flagged_for_review": 0,
+   "shipped_dirty": 1,
+   "no_contact": 0,
+   "needs_contact": 24,
+   "same_opening": 29,
+   "median_words": 56,
+   "cost_per_reply_usd": 0.0134,
+   "seconds_per_reply": 20.4,
+   "repairs": 1
+  },
+  {
+   "model": "sonnet-5.5",
+   "arm": "plain",
+   "replies": 32,
+   "leaked": 1,
+   "invented": 1,
+   "compensation": 1,
+   "accusation": 1,
+   "generic_action": 8,
+   "safe": 29,
+   "not_paste_ready": 2,
+   "clean": 28,
+   "clean_ci95": [
+    0.719,
+    0.95
+   ],
+   "flagged_for_review": 0,
+   "shipped_dirty": 4,
+   "no_contact": 2,
+   "needs_contact": 24,
+   "same_opening": 8,
+   "median_words": 84,
+   "cost_per_reply_usd": 0.0071,
+   "seconds_per_reply": 5.2,
+   "repairs": 0
+  },
+  {
+   "model": "sonnet-5.5",
+   "arm": "oneshot",
+   "replies": 32,
+   "leaked": 0,
+   "invented": 0,
+   "compensation": 0,
+   "accusation": 0,
+   "generic_action": 2,
+   "safe": 32,
+   "not_paste_ready": 19,
+   "clean": 13,
+   "clean_ci95": [
+    0.255,
+    0.577
+   ],
+   "flagged_for_review": 0,
+   "shipped_dirty": 19,
+   "no_contact": 0,
+   "needs_contact": 24,
+   "same_opening": 7,
+   "median_words": 84,
+   "cost_per_reply_usd": 0.0066,
+   "seconds_per_reply": 4.4,
+   "repairs": 0
+  },
+  {
+   "model": "sonnet-5.5",
+   "arm": "minimised",
+   "replies": 32,
+   "leaked": 0,
+   "invented": 0,
+   "compensation": 0,
+   "accusation": 0,
+   "generic_action": 1,
+   "safe": 32,
+   "not_paste_ready": 14,
+   "clean": 18,
+   "clean_ci95": [
+    0.393,
+    0.718
+   ],
+   "flagged_for_review": 0,
+   "shipped_dirty": 14,
+   "no_contact": 0,
+   "needs_contact": 24,
+   "same_opening": 5,
+   "median_words": 81,
+   "cost_per_reply_usd": 0.0065,
+   "seconds_per_reply": 4.1,
+   "repairs": 0
+  },
+  {
+   "model": "sonnet-5.5",
+   "arm": "checked",
+   "replies": 32,
+   "leaked": 0,
+   "invented": 0,
+   "compensation": 0,
+   "accusation": 0,
+   "generic_action": 0,
+   "safe": 32,
+   "not_paste_ready": 3,
+   "clean": 29,
+   "clean_ci95": [
+    0.758,
+    0.968
+   ],
+   "flagged_for_review": 2,
+   "shipped_dirty": 1,
+   "no_contact": 0,
+   "needs_contact": 24,
+   "same_opening": 5,
+   "median_words": 77,
+   "cost_per_reply_usd": 0.0107,
+   "seconds_per_reply": 6.3,
+   "repairs": 17
+  }
+ ],
+ "comparisons": [
+  {
+   "metric": "leaked",
+   "model": "both",
+   "a": "plain",
+   "a_count": [
+    5,
+    64
+   ],
+   "b": "oneshot",
+   "b_count": [
+    0,
+    64
+   ],
+   "fisher_p": 0.0576
+  },
+  {
+   "metric": "unsafe",
+   "model": "both",
+   "a": "plain",
+   "a_count": [
+    15,
+    64
+   ],
+   "b": "oneshot",
+   "b_count": [
+    1,
+    64
+   ],
+   "fisher_p": 0.0002
+  },
+  {
+   "metric": "unsafe",
+   "model": "haiku-4.5",
+   "a": "plain",
+   "a_count": [
+    12,
+    32
+   ],
+   "b": "oneshot",
+   "b_count": [
+    1,
+    32
+   ],
+   "fisher_p": 0.0012
+  },
+  {
+   "metric": "not_paste_ready",
+   "model": "sonnet-5.5",
+   "a": "plain",
+   "a_count": [
+    2,
+    32
+   ],
+   "b": "oneshot",
+   "b_count": [
+    19,
+    32
+   ],
+   "fisher_p": 0.0
+  },
+  {
+   "metric": "clean",
+   "model": "sonnet-5.5",
+   "a": "minimised",
+   "a_count": [
+    18,
+    32
+   ],
+   "b": "checked",
+   "b_count": [
+    29,
+    32
+   ],
+   "fisher_p": 0.0038
+  },
+  {
+   "metric": "clean",
+   "model": "sonnet-5.5",
+   "a": "oneshot",
+   "a_count": [
+    13,
+    32
+   ],
+   "b": "checked",
+   "b_count": [
+    29,
+    32
+   ],
+   "fisher_p": 0.0
+  }
+ ],
+ "judge": {
+  "model": "sonnet-5.5",
+  "calls": 32,
+  "unparsed": 0,
+  "cost_usd": 0.5698
+ },
+ "flags": {
+  "total": 74,
+  "reviewed": 74,
+  "overruled": 23,
+  "retyped": 1,
+  "added_by_hand": 2
+ },
+ "pipeline_cost_usd": 2.1633
+}

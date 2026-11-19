@@ -1,5 +1,5 @@
 """The independent judge: Claude Sonnet 5.5 at its default effort, with its own prompt. It is the only model that sees
-the private notes next to the replies. One call per review scores all six replies (3 arms x 2 models) under shuffled
+the private notes next to the replies. One call per review scores all eight replies (4 arms x 2 models) under shuffled
 letters, so it can't tell which setup or model wrote which. It never feeds back into a pipeline; each of its flags was
 then reviewed one by one (audit/labels.yaml).
 """

@@ -1,4 +1,4 @@
-"""Run every (model, review), judge each review's six final replies together, apply the flag review, and summarise.
+"""Run every (model, review), judge each review's eight final replies together, apply the flag review, and summarise.
 
 results/replies.jsonl one row per (model, review, arm): the reply, rule problems, judge flags, leak-term hits, cost, time
 results/summary.json  the tables in the README (generated from replies.jsonl by `summarise`)
@@ -86,11 +86,20 @@ def load_audit() -> dict[str, str]:
     return (yaml.safe_load(AUDIT.read_text()) or {}).get("labels", {}) if AUDIT.exists() else {}
 
 
+def load_added() -> dict[str, list[dict]]:
+    """Problems found by hand that no check or judge flagged: {"model|review|arm": [{"type", "text"}]}."""
+    return (yaml.safe_load(AUDIT.read_text()) or {}).get("added", {}) if AUDIT.exists() else {}
+
+
 def kept_issues(row: dict, audit: dict[str, str]) -> list[dict]:
-    """Judge flags and leak-term hits that survived the flag review (an unreviewed flag counts as kept)."""
+    """Judge flags and leak-term hits that survived the flag review (an unreviewed flag counts as kept). A label
+    `retype: <type>` keeps the flag under another type."""
     out = []
     for i in row["judge_issues"]:
-        if not str(audit.get(audit_key(row, i["type"], i["text"]), "keep")).startswith("overrule"):
+        label = str(audit.get(audit_key(row, i["type"], i["text"]), "keep"))
+        if label.startswith("retype:"):
+            out.append({"type": label.split(":", 1)[1].split()[0], "text": i["text"]})
+        elif not label.startswith("overrule"):
             out.append({"type": i["type"], "text": i["text"]})
     for t in row["term_leaks"]:
         if not str(audit.get(audit_key(row, "term", t), "keep")).startswith("overrule"):
@@ -107,22 +116,65 @@ def wilson(k: int, n: int, z: float = 1.96) -> list[float]:
     return [round(max(0.0, mid - half), 3), round(min(1.0, mid + half), 3)]
 
 
+def fisher(a: list[int], b: list[int]) -> float:
+    """Two-sided Fisher's exact test for k1/n1 vs k2/n2 (sum of table probabilities no larger than the observed one)."""
+    (k1, n1), (k2, n2) = a, b
+    k, n = k1 + k2, n1 + n2
+
+    def prob(x: int) -> float:
+        return math.comb(n1, x) * math.comb(n2, k - x) / math.comb(n, k)
+
+    observed = prob(k1)
+    p = sum(prob(x) for x in range(max(0, k - n2), min(k, n1) + 1) if prob(x) <= observed * (1 + 1e-9))
+    return round(min(1.0, p), 4)
+
+
+COMPARE = [  # (metric, model or "both", arm A, arm B)
+    ("leaked", "both", "plain", "oneshot"),
+    ("unsafe", "both", "plain", "oneshot"),
+    ("unsafe", "haiku-4.5", "plain", "oneshot"),
+    ("not_paste_ready", "sonnet-5.5", "plain", "oneshot"),
+    ("clean", "sonnet-5.5", "minimised", "checked"),
+    ("clean", "sonnet-5.5", "oneshot", "checked"),
+]
+
+
+def _count(table: list[dict], metric: str, model: str, arm: str) -> list[int]:
+    rs = [r for r in table if r["arm"] == arm and model in ("both", r["model"])]
+    k = sum(r["replies"] - r["safe"] if metric == "unsafe" else r[metric] for r in rs)
+    return [k, sum(r["replies"] for r in rs)]
+
+
+def compare(table: list[dict]) -> list[dict]:
+    out = []
+    for metric, model, a, b in COMPARE:
+        ca, cb = _count(table, metric, model, a), _count(table, metric, model, b)
+        out.append({"metric": metric, "model": model, "a": a, "a_count": ca, "b": b, "b_count": cb, "fisher_p": fisher(ca, cb)})
+    return out
+
+
 def opening(reply: str) -> str:
     return " ".join(re.findall(r"[a-z']+", reply.lower())[:3])
 
 
-def _count(kept: list[list[dict]], kind: str) -> int:
+def _has(kept: list[list[dict]], kind: str) -> int:
     return sum(any(i["type"] == kind for i in k) for k in kept)
 
 
 def summarise(rows: list[dict]) -> dict:
-    audit = load_audit()
+    audit, added = load_audit(), load_added()
     table = []
     for model in sorted({r["model"] for r in rows}):
         for arm in pipeline.ARMS:
             rs = [r for r in rows if r["model"] == model and r["arm"] == arm]
             kept = [kept_issues(r, audit) for r in rs]
-            dirty = [any(i["type"] in judge.SEVERE for i in k) for k in kept]
+            unsafe = [any(i["type"] in judge.SEVERE for i in k) for k in kept]
+            note = [
+                any(p["rule"] == "not-paste-ready" for p in r["rule_issues"])
+                or any(i["type"] == "note" for i in added.get(f"{r['model']}|{r['review']}|{r['arm']}", []))
+                for r in rs
+            ]
+            dirty = [u or n for u, n in zip(unsafe, note, strict=True)]
             clean = sum(not d for d in dirty)
             openings = Counter(opening(r["reply"]) for r in rs)
             needs_contact = [r for r in rs if r["kind"] != "praise"]
@@ -131,16 +183,17 @@ def summarise(rows: list[dict]) -> dict:
                     "model": model,
                     "arm": arm,
                     "replies": len(rs),
-                    "leaked": _count(kept, "leak"),
-                    "invented": _count(kept, "invented"),
-                    "compensation": _count(kept, "compensation"),
-                    "accusation": _count(kept, "accusation"),
-                    "generic_action": _count(kept, "generic-action"),
+                    "leaked": _has(kept, "leak"),
+                    "invented": _has(kept, "invented"),
+                    "compensation": _has(kept, "compensation"),
+                    "accusation": _has(kept, "accusation"),
+                    "generic_action": _has(kept, "generic-action"),
+                    "safe": sum(not u for u in unsafe),
+                    "not_paste_ready": sum(note),
                     "clean": clean,
                     "clean_ci95": wilson(clean, len(rs)),
                     "flagged_for_review": sum(r["flagged_for_review"] for r in rs),
                     "shipped_dirty": sum(d and not r["flagged_for_review"] for d, r in zip(dirty, rs, strict=True)),
-                    "not_paste_ready": sum(any(p["rule"] == "not-paste-ready" for p in r["rule_issues"]) for r in rs),
                     "no_contact": sum(any(p["rule"] == "contact" for p in r["rule_issues"]) for r in needs_contact),
                     "needs_contact": len(needs_contact),
                     "same_opening": sum(c for c in openings.values() if c > 1),
@@ -155,16 +208,24 @@ def summarise(rows: list[dict]) -> dict:
     ]
     reviewed = [audit_key(r, k, t) in audit for r, k, t in flags]
     overruled = [str(audit.get(audit_key(r, k, t), "")).startswith("overrule") for r, k, t in flags]
+    retyped = [str(audit.get(audit_key(r, k, t), "")).startswith("retype") for r, k, t in flags]
     return {
         "table": table,
+        "comparisons": compare(table),
         "judge": {
             "model": judge.JUDGE,
             "calls": sum(1 for r in rows if "judge_cost_usd" in r),
             "unparsed": sum(r["judge_unparsed"] for r in rows),
             "cost_usd": round(sum(r.get("judge_cost_usd", 0.0) for r in rows), 4),
         },
-        "flags": {"total": len(flags), "reviewed": sum(reviewed), "overruled": sum(overruled)},
-        "pipeline_cost_usd": round(sum(r["cost_usd"] for r in rows if r["arm"] != "minimised"), 4),
+        "flags": {
+            "total": len(flags),
+            "reviewed": sum(reviewed),
+            "overruled": sum(overruled),
+            "retyped": sum(retyped),
+            "added_by_hand": sum(len(v) for v in added.values()),
+        },
+        "pipeline_cost_usd": round(sum(r["cost_usd"] for r in rows if r["arm"] != "minimised"), 4),  # checked includes its draft
     }
 
 

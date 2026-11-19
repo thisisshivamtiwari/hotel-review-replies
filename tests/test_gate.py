@@ -47,3 +47,9 @@ def test_overruled_flags_are_dropped():
     }
     assert experiment.kept_issues(r, audit) == []
     assert len(experiment.kept_issues(r, {})) == 2
+
+
+def test_fisher_exact():
+    assert experiment.fisher([0, 10], [0, 10]) == 1.0
+    assert experiment.fisher([5, 64], [0, 64]) == 0.0576  # 2 * C(64,5) / C(128,5)
+    assert experiment.fisher([3, 3], [0, 3]) == 0.1

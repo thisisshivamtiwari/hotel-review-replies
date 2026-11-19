@@ -1,8 +1,11 @@
-"""Three ways to draft a public reply to one review. All three get the same rules in the same system prompt; they
-differ only in what the model is shown and what happens to the draft:
+"""Four ways to draft a public reply to one review:
 
-- `oneshot`: the fact sheet, the review and the guest's full private booking notes (what a tool wired straight into
-  the booking system sends), one call;
+- `plain`: the fact sheet, the review and the guest's full private booking notes (what a tool wired straight into
+  the booking system sends), with a system prompt that sets only the format (prompts/plain.txt), one call;
+- `oneshot`: the same context, with the safety rules in the system prompt (prompts/generate.txt), one call;
+
+The other two use the same rules prompt and differ only in what the model is shown and what happens to the draft:
+
 - `minimised`: the fact sheet, the review and one line from the booking system: whether a stay matching the reviewer
   was found. No private notes ever reach the model;
 - `checked`: the `minimised` draft, then deterministic checks (checks.py) and up to 2 repair calls that list the exact
@@ -18,7 +21,7 @@ import yaml
 from . import checks, llm
 
 PROMPTS = Path(__file__).resolve().parents[2] / "prompts"
-ARMS = ["oneshot", "minimised", "checked"]
+ARMS = ["plain", "oneshot", "minimised", "checked"]
 MAX_REPAIRS = 2
 
 
@@ -61,12 +64,15 @@ def _call(alias: str, name: str, user: str, purpose: str, log: list) -> str:
 
 
 def run(alias: str, hotel: dict, review: dict) -> dict[str, dict]:
-    """All three arms for one (model, review). Returns {arm: {reply, log, rounds, last_problems}}."""
+    """All four arms for one (model, review). Returns {arm: {reply, log, rounds, last_problems}}."""
+    plain_log: list = []
+    plain = _call(alias, "plain", context(hotel, review, full=True), "generate-plain", plain_log)
     one_log: list = []
     one = _call(alias, "generate", context(hotel, review, full=True), "generate-full", one_log)
     min_log: list = []
     first = _call(alias, "generate", context(hotel, review, full=False), "generate-minimised", min_log)
     out = {
+        "plain": {"reply": plain, "log": plain_log, "rounds": 0, "last_problems": []},
         "oneshot": {"reply": one, "log": one_log, "rounds": 0, "last_problems": []},
         "minimised": {"reply": first, "log": min_log, "rounds": 0, "last_problems": []},
     }
