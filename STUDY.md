@@ -66,6 +66,12 @@ check for invented reasons before trusting a small model unattended.
    rear room"), restated policies and generic purposes ("to better serve our guests").
 7. **Checks over-flag in edge cases**: a sensitive word list can hit innocent uses, and a number check flags any
    number the fact sheet doesn't contain.
+8. **A failed lookup read as "not found" (fixed 24 Nov).** The first version showed the model "no stay matching this
+   reviewer was found" whenever the lookup didn't say yes, including when it never answered, so the model would
+   publicly tell a real guest their stay doesn't exist. Now there are three states (found, not found, not known),
+   and a check holds any "we can't find your stay" the booking system didn't back. Before the fix, 8 of the 15 fault
+   fixtures (a missing fact-sheet field, a timed-out model call) raised an exception that would stop the whole batch;
+   now each is flagged for a person with the reason ([results/faults.json](results/faults.json)).
 
 ## 5. Ten interview questions
 

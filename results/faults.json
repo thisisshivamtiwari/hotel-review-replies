@@ -1,0 +1,339 @@
+{
+ "fixtures": [
+  {
+   "id": "lookup-failed",
+   "kind": "failed-dependency",
+   "what": "booking lookup failed; draft says stay not found",
+   "expect": "flagged",
+   "model_told": "the lookup failed, so it is not known whether this reviewer stayed; don't say either way",
+   "model_told_before": "no stay matching this reviewer was found",
+   "guarded": {
+    "outcome": "flagged",
+    "problems": [
+     "stay-claim"
+    ],
+    "repairs": 2,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "posted",
+    "problems": [],
+    "repairs": 0,
+    "pass": false
+   }
+  },
+  {
+   "id": "lookup-failed-neutral",
+   "kind": "failed-dependency",
+   "what": "booking lookup failed; draft doesn't say",
+   "expect": "posted",
+   "model_told": "the lookup failed, so it is not known whether this reviewer stayed; don't say either way",
+   "model_told_before": "no stay matching this reviewer was found",
+   "guarded": {
+    "outcome": "posted",
+    "problems": [],
+    "repairs": 0,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "posted",
+    "problems": [],
+    "repairs": 0,
+    "pass": true
+   }
+  },
+  {
+   "id": "model-timeout",
+   "kind": "failed-dependency",
+   "what": "the draft call times out",
+   "expect": "flagged",
+   "model_told": "a stay matching this reviewer was found",
+   "model_told_before": "a stay matching this reviewer was found",
+   "guarded": {
+    "outcome": "flagged",
+    "problems": [
+     "model-failed"
+    ],
+    "repairs": 0,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "crashed",
+    "error": "TimeoutExpired",
+    "problems": [],
+    "pass": false
+   }
+  },
+  {
+   "id": "model-error",
+   "kind": "failed-dependency",
+   "what": "the CLI exits with an API error",
+   "expect": "flagged",
+   "model_told": "a stay matching this reviewer was found",
+   "model_told_before": "a stay matching this reviewer was found",
+   "guarded": {
+    "outcome": "flagged",
+    "problems": [
+     "model-failed"
+    ],
+    "repairs": 0,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "crashed",
+    "error": "CalledProcessError",
+    "problems": [],
+    "pass": false
+   }
+  },
+  {
+   "id": "model-empty",
+   "kind": "failed-dependency",
+   "what": "the model returns no text",
+   "expect": "flagged",
+   "model_told": "a stay matching this reviewer was found",
+   "model_told_before": "a stay matching this reviewer was found",
+   "guarded": {
+    "outcome": "flagged",
+    "problems": [
+     "empty"
+    ],
+    "repairs": 2,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "flagged",
+    "problems": [
+     "empty"
+    ],
+    "repairs": 2,
+    "pass": true
+   }
+  },
+  {
+   "id": "model-refusal",
+   "kind": "failed-dependency",
+   "what": "the model refuses",
+   "expect": "flagged",
+   "model_told": "a stay matching this reviewer was found",
+   "model_told_before": "a stay matching this reviewer was found",
+   "guarded": {
+    "outcome": "flagged",
+    "problems": [
+     "contact",
+     "length",
+     "signoff"
+    ],
+    "repairs": 2,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "flagged",
+    "problems": [
+     "contact",
+     "length",
+     "signoff"
+    ],
+    "repairs": 2,
+    "pass": true
+   }
+  },
+  {
+   "id": "repair-fails",
+   "kind": "failed-dependency",
+   "what": "draft offers a refund; the repair call times out",
+   "expect": "flagged",
+   "model_told": "a stay matching this reviewer was found",
+   "model_told_before": "a stay matching this reviewer was found",
+   "guarded": {
+    "outcome": "flagged",
+    "problems": [
+     "compensation",
+     "model-failed"
+    ],
+    "repairs": 0,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "crashed",
+    "error": "TimeoutExpired",
+    "problems": [],
+    "pass": false
+   }
+  },
+  {
+   "id": "no-contact",
+   "kind": "missing-input",
+   "what": "fact sheet has no contact address",
+   "expect": "flagged",
+   "model_told": "a stay matching this reviewer was found",
+   "model_told_before": "a stay matching this reviewer was found",
+   "guarded": {
+    "outcome": "flagged",
+    "problems": [
+     "missing-input"
+    ],
+    "repairs": 0,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "crashed",
+    "error": "KeyError",
+    "problems": [],
+    "pass": false
+   }
+  },
+  {
+   "id": "no-signoff",
+   "kind": "missing-input",
+   "what": "fact sheet has no sign-off",
+   "expect": "flagged",
+   "model_told": "a stay matching this reviewer was found",
+   "model_told_before": "a stay matching this reviewer was found",
+   "guarded": {
+    "outcome": "flagged",
+    "problems": [
+     "missing-input"
+    ],
+    "repairs": 0,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "crashed",
+    "error": "KeyError",
+    "problems": [],
+    "pass": false
+   }
+  },
+  {
+   "id": "no-open-issues",
+   "kind": "missing-input",
+   "what": "fact sheet has no open-issues list (unknown, not empty)",
+   "expect": "flagged",
+   "model_told": "a stay matching this reviewer was found",
+   "model_told_before": "a stay matching this reviewer was found",
+   "guarded": {
+    "outcome": "flagged",
+    "problems": [
+     "missing-input"
+    ],
+    "repairs": 0,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "crashed",
+    "error": "KeyError",
+    "problems": [],
+    "pass": false
+   }
+  },
+  {
+   "id": "no-lookup-field",
+   "kind": "missing-input",
+   "what": "no booking-lookup field; draft says not found",
+   "expect": "flagged",
+   "model_told": "the lookup failed, so it is not known whether this reviewer stayed; don't say either way",
+   "model_told_before": null,
+   "guarded": {
+    "outcome": "flagged",
+    "problems": [
+     "stay-claim"
+    ],
+    "repairs": 2,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "crashed",
+    "error": "KeyError",
+    "problems": [],
+    "pass": false
+   }
+  },
+  {
+   "id": "no-lookup-field-neutral",
+   "kind": "missing-input",
+   "what": "no booking-lookup field; draft doesn't say",
+   "expect": "posted",
+   "model_told": "the lookup failed, so it is not known whether this reviewer stayed; don't say either way",
+   "model_told_before": null,
+   "guarded": {
+    "outcome": "posted",
+    "problems": [],
+    "repairs": 0,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "crashed",
+    "error": "KeyError",
+    "problems": [],
+    "pass": false
+   }
+  },
+  {
+   "id": "found-says-missing",
+   "kind": "contradiction",
+   "what": "stay found; draft says it can't be found",
+   "expect": "flagged",
+   "model_told": "a stay matching this reviewer was found",
+   "model_told_before": "a stay matching this reviewer was found",
+   "guarded": {
+    "outcome": "flagged",
+    "problems": [
+     "stay-claim"
+    ],
+    "repairs": 2,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "posted",
+    "problems": [],
+    "repairs": 0,
+    "pass": false
+   }
+  },
+  {
+   "id": "found",
+   "kind": "control",
+   "what": "stay found; the recorded reply",
+   "expect": "posted",
+   "model_told": "a stay matching this reviewer was found",
+   "model_told_before": "a stay matching this reviewer was found",
+   "guarded": {
+    "outcome": "posted",
+    "problems": [],
+    "repairs": 0,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "posted",
+    "problems": [],
+    "repairs": 0,
+    "pass": true
+   }
+  },
+  {
+   "id": "not-found",
+   "kind": "control",
+   "what": "no stay found; the recorded reply",
+   "expect": "posted",
+   "model_told": "no stay matching this reviewer was found",
+   "model_told_before": "no stay matching this reviewer was found",
+   "guarded": {
+    "outcome": "posted",
+    "problems": [],
+    "repairs": 0,
+    "pass": true
+   },
+   "legacy": {
+    "outcome": "posted",
+    "problems": [],
+    "repairs": 0,
+    "pass": true
+   }
+  }
+ ],
+ "cases": 15,
+ "passed": 15,
+ "legacy_passed": 5,
+ "legacy_crashed": 8
+}

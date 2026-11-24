@@ -1,4 +1,4 @@
-"""Rewrite the generated tables in README.md (between the RESULTS markers) from results/summary.json."""
+"""Rewrite the generated tables in README.md: RESULTS from results/summary.json, FAULTS from results/faults.json."""
 
 from pathlib import Path
 
@@ -41,11 +41,21 @@ def table(summary: dict) -> str:
     return "\n".join(lines)
 
 
-def update(summary: dict) -> None:
+def _replace(start: str, end: str, body: str) -> None:
     path = ROOT / "README.md"
     text = path.read_text()
-    if START not in text:
+    if start not in text:
         return
-    head, rest = text.split(START, 1)
-    _, tail = rest.split(END, 1)
-    path.write_text(f"{head}{START}\n{table(summary)}\n{END}{tail}")
+    head, rest = text.split(start, 1)
+    _, tail = rest.split(end, 1)
+    path.write_text(f"{head}{start}\n{body}\n{end}{tail}")
+
+
+def update(summary: dict) -> None:
+    _replace(START, END, table(summary))
+
+
+def update_faults(res: dict) -> None:
+    from . import faults
+
+    _replace("<!-- FAULTS:START -->", "<!-- FAULTS:END -->", faults.table(res))

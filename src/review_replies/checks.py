@@ -11,6 +11,8 @@ Each problem is {"rule", "detail"}. The rules:
 - open-fixed:    says an open issue is fixed, replaced or sorted
 - unbacked-action: claims something was done or will be done, in a sentence that touches no listed change or open issue
 - not-paste-ready: a note to the hotel instead of the guest ("verify before posting", "[name]", "Note:")
+- stay-claim:    says the guest's stay can't be found when the booking system didn't say so (it found the stay, or the
+                 lookup failed): on a public page that reads as calling the reviewer a liar
 """
 
 import re
@@ -44,6 +46,11 @@ ACTION = re.compile(
 )
 DONE = re.compile(r"\b(fixed|resolved|replaced|repaired|sorted|solved|installed|upgraded|no longer)\b", re.I)
 NOTE_TO_HOTEL = re.compile(r"before posting|please verify|\bverify (all|the|these)\b|^\W*note:|\[[^\]]*\]", re.I | re.M)
+NOT_FOUND = re.compile(
+    r"\b(can(?:no|')t|could(?:n't| not)|unable to|not able to|ha(?:ve|s)(?:n't| not) been able to)\s+(?:\w+\s+){0,3}?"
+    r"(find|locate|trace|match)\b|\bno record of\b",
+    re.I,
+)
 NUMBER = re.compile(r"£?\d+(?:[.,:]\d+)?(?:am|pm|%|m|st|nd|rd|th)?", re.I)
 
 
@@ -83,7 +90,7 @@ def check_reply(reply: str | None, hotel: dict, review: dict) -> list[dict]:
     name = hotel["signoff"].split(",")[0]
     if name.lower() not in reply.lower():
         problems.append({"rule": "signoff", "detail": f"sign off with {hotel['signoff']!r}"})
-    if review["kind"] != "praise" and hotel["contact"].lower() not in reply.lower():
+    if review.get("kind") != "praise" and hotel["contact"].lower() not in reply.lower():
         problems.append({"rule": "contact", "detail": f"invite the guest to contact {hotel['contact']}"})
     known = _numbers(review["text"] + " " + fact_text(hotel))
     for n in sorted(_numbers(reply) - known):
@@ -92,6 +99,9 @@ def check_reply(reply: str | None, hotel: dict, review: dict) -> list[dict]:
         m = re.search(rf"\b{pat}\b", reply, re.I)
         if m and not re.search(rf"\b{pat}\b", review["text"], re.I):
             problems.append({"rule": "sensitive", "detail": f"{m.group(0)!r}: the reviewer didn't mention it"})
+    m = NOT_FOUND.search(reply)
+    if m and review.get("stay_found") is not False:
+        problems.append({"rule": "stay-claim", "detail": f"{m.group(0)!r}: the booking system didn't say the stay is missing"})
     for m in COMPENSATION.finditer(reply):
         problems.append({"rule": "compensation", "detail": f"{m.group(0)!r}: no compensation in public"})
     for s in sentences(reply):

@@ -11,9 +11,14 @@ The other two use the same rules prompt and differ only in what the model is sho
 - `checked`: the `minimised` draft, then deterministic checks (checks.py) and up to 2 repair calls that list the exact
   problems. A reply that still fails after 2 repairs is flagged for a person to review instead of being posted.
 
+`guarded` is the `checked` arm as a hotel would run it, one review at a time: a fact sheet missing what the checks
+need, or a model call that fails, flags the review for a person instead of stopping the batch or posting unchecked.
+A booking lookup that failed (`stay_found` missing or None) is told to the model as "not known", never as "not found".
+
 The judge (judge.py) scores the final replies; it is never part of a pipeline.
 """
 
+import subprocess
 from pathlib import Path
 
 import yaml
@@ -23,6 +28,10 @@ from . import checks, llm
 PROMPTS = Path(__file__).resolve().parents[2] / "prompts"
 ARMS = ["plain", "oneshot", "minimised", "checked"]
 MAX_REPAIRS = 2
+# What a failed CLI call raises (non-zero exit, timeout, bad JSON). A missing cassette (KeyError) still fails loudly.
+MODEL_ERRORS = (subprocess.SubprocessError, OSError, ValueError)
+NEEDED_TEXT = ("name", "town", "kind", "contact", "signoff")
+NEEDED_LISTS = ("facts", "changes", "open_issues")  # may be empty, but must be there: a missing list is unknown
 
 
 def prompt(name: str) -> str:
@@ -43,8 +52,17 @@ def review_block(review: dict) -> str:
 
 
 def booking_line(review: dict) -> str:
-    found = "a stay matching this reviewer was found" if review["stay_found"] else "no stay matching this reviewer was found"
-    return f"BOOKING SYSTEM\n{found}"
+    found = review.get("stay_found")
+    if found is None:
+        line = "the lookup failed, so it is not known whether this reviewer stayed; don't say either way"
+    else:
+        line = "a stay matching this reviewer was found" if found else "no stay matching this reviewer was found"
+    return f"BOOKING SYSTEM\n{line}"
+
+
+def missing_inputs(hotel: dict) -> list[str]:
+    gaps = [f"fact sheet has no {k}" for k in NEEDED_TEXT if not str(hotel.get(k) or "").strip()]
+    return gaps + [f"fact sheet has no {k} list" for k in NEEDED_LISTS if not isinstance(hotel.get(k), list)]
 
 
 def private_block(review: dict) -> str:
@@ -76,14 +94,37 @@ def run(alias: str, hotel: dict, review: dict) -> dict[str, dict]:
         "oneshot": {"reply": one, "log": one_log, "rounds": 0, "last_problems": []},
         "minimised": {"reply": first, "log": min_log, "rounds": 0, "last_problems": []},
     }
-    log, reply, rounds = list(min_log), first, 0
+    out["checked"] = check_and_repair(alias, hotel, review, first, list(min_log))
+    return out
+
+
+def check_and_repair(alias: str, hotel: dict, review: dict, reply: str, log: list) -> dict:
+    rounds = 0
     while True:
         problems = checks.check_reply(reply, hotel, review)
         if not problems or rounds == MAX_REPAIRS:
             break
         listed = "\n".join(f"- [{p['rule']}] {p['detail']}" for p in problems)
         user = f"{context(hotel, review, full=False)}\n\nDRAFT REPLY\n{reply}\n\nPROBLEMS\n{listed}"
-        reply = _call(alias, "repair", user, f"repair-{rounds}", log) or reply
+        try:
+            reply = _call(alias, "repair", user, f"repair-{rounds}", log) or reply
+        except MODEL_ERRORS as e:
+            problems = [*problems, {"rule": "model-failed", "detail": f"repair call failed ({type(e).__name__})"}]
+            break
         rounds += 1
-    out["checked"] = {"reply": reply, "log": log, "rounds": rounds, "last_problems": problems}
-    return out
+    return {"reply": reply, "log": log, "rounds": rounds, "last_problems": problems}
+
+
+def guarded(alias: str, hotel: dict, review: dict) -> dict:
+    """The `checked` arm for one review that never raises on bad inputs or a failed call: those come back flagged
+    (`last_problems` not empty) with the reason, and `reply` None when there is no draft at all."""
+    gaps = missing_inputs(hotel)
+    if gaps:
+        return {"reply": None, "log": [], "rounds": 0, "last_problems": [{"rule": "missing-input", "detail": g} for g in gaps]}
+    log: list = []
+    try:
+        first = _call(alias, "generate", context(hotel, review, full=False), "generate-minimised", log)
+    except MODEL_ERRORS as e:
+        failed = {"rule": "model-failed", "detail": f"draft call failed ({type(e).__name__})"}
+        return {"reply": None, "log": log, "rounds": 0, "last_problems": [failed]}
+    return check_and_repair(alias, hotel, review, first, log)

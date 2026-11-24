@@ -140,6 +140,45 @@ What the numbers say (our test: 32 made-up reviews, one reply per setup and mode
    were also templated: in the minimised setup 29 of 32 shared their first three words with another reply, against
    5 for Sonnet.
 
+### Missing inputs and failed dependencies (added 24 Nov)
+
+The recorded run always had a complete fact sheet, a booking lookup that answered and model calls that worked.
+[faults.py](src/review_replies/faults.py) breaks each of those on purpose, with a scripted model (no API calls)
+that writes a recorded Sonnet 5.5 reply and sends it again when asked to repair it. It runs each case through the
+guarded `checked` arm and through the same arm as committed on 19 Nov. What changed:
+
+- a failed booking lookup (`stay_found` missing or null) is told to the model as "not known", not as "no stay
+  found", and a new `stay-claim` check holds any reply that says the stay can't be found unless the booking system
+  said so (on a public page that reads as calling the reviewer a liar);
+- a fact sheet without a contact address, sign-off or open-issues list (an empty list is fine; a missing one is
+  unknown) is flagged before any model call;
+- a draft or repair call that times out or fails is flagged with the reason, instead of stopping the batch.
+
+With the new check in place the recorded run still reproduces exactly, and the check fires on none of its 256
+final replies.
+
+<!-- FAULTS:START -->
+| Fixture | Kind | Expected | Guarded (now) | Before (19 Nov) |
+|---|---|---|---|---|
+| booking lookup failed; draft says stay not found | failed-dependency | flagged | ✅ flagged (stay-claim) | ❌ posted |
+| booking lookup failed; draft doesn't say | failed-dependency | posted | ✅ posted | ✅ posted |
+| the draft call times out | failed-dependency | flagged | ✅ flagged (model-failed) | ❌ crashed (TimeoutExpired) |
+| the CLI exits with an API error | failed-dependency | flagged | ✅ flagged (model-failed) | ❌ crashed (CalledProcessError) |
+| the model returns no text | failed-dependency | flagged | ✅ flagged (empty) | ✅ flagged (empty) |
+| the model refuses | failed-dependency | flagged | ✅ flagged (contact, length, signoff) | ✅ flagged (contact, length, signoff) |
+| draft offers a refund; the repair call times out | failed-dependency | flagged | ✅ flagged (compensation, model-failed) | ❌ crashed (TimeoutExpired) |
+| fact sheet has no contact address | missing-input | flagged | ✅ flagged (missing-input) | ❌ crashed (KeyError) |
+| fact sheet has no sign-off | missing-input | flagged | ✅ flagged (missing-input) | ❌ crashed (KeyError) |
+| fact sheet has no open-issues list (unknown, not empty) | missing-input | flagged | ✅ flagged (missing-input) | ❌ crashed (KeyError) |
+| no booking-lookup field; draft says not found | missing-input | flagged | ✅ flagged (stay-claim) | ❌ crashed (KeyError) |
+| no booking-lookup field; draft doesn't say | missing-input | posted | ✅ posted | ❌ crashed (KeyError) |
+| stay found; draft says it can't be found | contradiction | flagged | ✅ flagged (stay-claim) | ❌ posted |
+| stay found; the recorded reply | control | posted | ✅ posted | ✅ posted |
+| no stay found; the recorded reply | control | posted | ✅ posted | ✅ posted |
+
+Guarded: 15/15 as expected. Before: 5/15, and 8 of the 15 would have stopped the batch.
+<!-- FAULTS:END -->
+
 ## Limitations
 
 - **Made-up data, small numbers.** 32 reviews, one reply per setup and model. The intervals are wide and only the
@@ -173,6 +212,7 @@ What the numbers say (our test: 32 made-up reviews, one reply per setup and mode
 uv sync
 uv run pytest -q
 uv run python -m review_replies ci        # replay every recorded call, check results reproduce, apply the gate
+uv run python -m review_replies faults    # the missing-input and failed-dependency fixtures -> results/faults.json
 uv run python -m review_replies report    # rebuild results/summary.json, the table above and media/results.png
 uv run python -m review_replies demo      # terminal walk-through of one review
 HRR_MODE=record uv run python -m review_replies run   # new model calls (needs the Claude Code CLI, signed in)
